@@ -30,17 +30,25 @@ public class UIManager : MonoBehaviour
         Viking.OnStaminaChanged += ChangeStamina;
     }
 
-    private void ChangeHealth(int currentHealth, int maxHealth)
+    private void ChangeHealth(Viking viking, int currentHealth, int maxHealth)
     {
-        healthSlider.maxValue = maxHealth;
-        healthSlider.value = currentHealth;
+        if (viking == GameManager.Instance.CurrentViking)
+        {
+            healthSlider.maxValue = maxHealth;
+            healthSlider.value = currentHealth;
+        }
+        
         //healthText.text = $"{currentHealth}/{maxHealth}";
     }
 
-    private void ChangeStamina(int currentStamina, int maxStamina)
+    private void ChangeStamina(Viking viking, int currentStamina, int maxStamina)
     {
-        staminaSlider.maxValue = maxStamina;
-        staminaSlider.value = currentStamina;
+        if (viking == GameManager.Instance.CurrentViking)
+        {
+            staminaSlider.maxValue = maxStamina;
+            staminaSlider.value = currentStamina;
+        }
+        
         //staminaText.text = $"{currentStamina}/{maxStamina}";
     }
 

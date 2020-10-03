@@ -40,9 +40,9 @@ public class GameManager : MonoBehaviour
     }
 
 
-    private void HealthCheck(int currentHealth, int maxHealth)
+    private void HealthCheck(Viking viking, int currentHealth, int maxHealth)
     {
-        if (currentHealth <= 0)
+        if (viking == currentViking && currentHealth <= 0)
         {
             Debug.Log("Current health is " + currentHealth + ", so calling game over");
             StartCoroutine(GameOver());

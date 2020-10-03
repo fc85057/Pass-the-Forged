@@ -5,8 +5,8 @@ using UnityEngine;
 public class Viking : MonoBehaviour
 {
 
-    public static event Action<int, int> OnHealthChanged;
-    public static event Action<int, int> OnStaminaChanged;
+    public static event Action<Viking, int, int> OnHealthChanged;
+    public static event Action<Viking, int, int> OnStaminaChanged;
 
     [SerializeField]
     private VikingStats stats;
@@ -49,15 +49,15 @@ public class Viking : MonoBehaviour
 
         currentHealth = stats.maxHealth;
         currentStamina = stats.maxStamina;
-
+        /*
         if (this == GameManager.Instance.CurrentViking)
         {
-            OnHealthChanged?.Invoke(currentHealth, stats.maxHealth);
+            OnHealthChanged?.Invoke(this, currentHealth, stats.maxHealth);
             OnStaminaChanged?.Invoke(currentStamina, stats.maxStamina);
         }
         //OnHealthChanged(currentHealth, stats.maxHealth);
         //OnStaminaChanged(currentStamina, stats.maxStamina);
-
+        */
         Hammer.OnEnemyHit += DealRangeDamage;
         WinTrigger.OnWinTriggerEntered += GameWin;
     }
@@ -75,17 +75,18 @@ public class Viking : MonoBehaviour
             isCharging = true;
         }
     }
-/*
+
     private void OnEnable()
     {
-        if (this == GameManager.Instance.CurrentViking)
+        currentHealth = stats.maxHealth;
+        if (GameManager.Instance != null && this == GameManager.Instance.CurrentViking)
         {
-            OnHealthChanged?.Invoke(currentHealth, stats.maxHealth);
-            OnStaminaChanged?.Invoke(currentStamina, stats.maxStamina);
+            OnHealthChanged?.Invoke(this, currentHealth, stats.maxHealth);
+            OnStaminaChanged?.Invoke(this, currentStamina, stats.maxStamina);
         }
         
     }
-*/
+
     private void OnDisable()
     {
         StopAllCoroutines();
@@ -98,7 +99,7 @@ public class Viking : MonoBehaviour
         while (currentStamina < stats.maxStamina)
         {
             currentStamina += 5;
-            OnStaminaChanged(currentStamina, stats.maxStamina);
+            OnStaminaChanged(this, currentStamina, stats.maxStamina);
             yield return new WaitForSeconds(1f);
         }
         isCharging = false;
@@ -168,7 +169,7 @@ public class Viking : MonoBehaviour
             AudioManager.Instance.PlaySound("Jump");
             rb.velocity = Vector2.up * stats.jumpForce;
             currentStamina -= staminaCost;
-            OnStaminaChanged(currentStamina, stats.maxStamina);
+            OnStaminaChanged(this, currentStamina, stats.maxStamina);
         }
 
 
@@ -195,7 +196,7 @@ public class Viking : MonoBehaviour
             }
         }
         currentStamina -= staminaCost;
-        OnStaminaChanged(currentStamina, stats.maxStamina);
+        OnStaminaChanged(this, currentStamina, stats.maxStamina);
     }
 
     private void RangeAttack()
@@ -203,7 +204,7 @@ public class Viking : MonoBehaviour
         
         animator.SetTrigger("Range");
         currentStamina -= staminaCost;
-        OnStaminaChanged(currentStamina, stats.maxStamina);
+        OnStaminaChanged(this, currentStamina, stats.maxStamina);
     }
 
     private void DealRangeDamage(Enemy enemy)
@@ -218,22 +219,26 @@ public class Viking : MonoBehaviour
         currentHealth += (healAmount * stats.healing / 100);
         if (currentHealth > stats.maxHealth) currentHealth = stats.maxHealth;
         AudioManager.Instance.PlaySound("Potion");
-        OnHealthChanged(currentHealth, stats.maxHealth);
+        OnHealthChanged(this, currentHealth, stats.maxHealth);
         Debug.Log("Health after healing: " + currentHealth);
     }
 
     public void TakeDamage(int damageAmount)
     {
+        if (this != GameManager.Instance.CurrentViking)
+            return;
         Instantiate(impactEffect, transform.position, Quaternion.identity);
         AudioManager.Instance.PlaySound("Hit");
         currentHealth -= damageAmount;
         Debug.Log("Viking took " + damageAmount + " damage and have " + currentHealth + " health left");
-        OnHealthChanged(currentHealth, stats.maxHealth);
+        OnHealthChanged(this, currentHealth, stats.maxHealth);
         
     }
 
     public void TakeDamage(int damageAmount, Element element)
     {
+        if (this != GameManager.Instance.CurrentViking)
+            return;
         bool isImmune = false;
         foreach (Element immunity in stats.immunities)
         {
@@ -248,11 +253,12 @@ public class Viking : MonoBehaviour
         }
         else
         {
+            Debug.Log("Damage amount is " + damageAmount + " and calculed times 1.5 is " + (int)(damageAmount * 1.5f));
             currentHealth -= (int)(damageAmount * 1.5f);
         }
         AudioManager.Instance.PlaySound("Hit");
         Debug.Log("Viking took " + damageAmount + " damage and has " + currentHealth + " health left");
-        OnHealthChanged(currentHealth, stats.maxHealth);
+        OnHealthChanged(this, currentHealth, stats.maxHealth);
         
     }
 
